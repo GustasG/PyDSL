@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.database import get_session
@@ -18,8 +18,10 @@ router = APIRouter(prefix="/environment", tags=["environment"])
 @router.get(path="/", response_model=list[Environment], status_code=status.HTTP_200_OK)
 async def read_all_environments(
     session: Annotated[AsyncSession, Depends(get_session)],
+    page: int = Query(default=1, ge=1, description="Page number"),
 ):
-    environments = await find_all_environments(session)
+    environments = await find_all_environments(session=session, page=page)
+
     return environments
 
 
@@ -40,8 +42,12 @@ async def read_environment(
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(get_environment)],
 )
-async def read_all_definitions(environment_id: UUID, session: Annotated[AsyncSession, Depends(get_session)]):
-    definitions = await find_all_code_definitions(session, environment_id)
+async def read_all_definitions(
+    environment_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    page: int = Query(default=1, ge=1, description="Page number"),
+):
+    definitions = await find_all_code_definitions(session=session, environment_id=environment_id, page=page)
 
     return definitions
 

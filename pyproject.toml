@@ -1,22 +1,32 @@
 [project]
 name = "PyDSL"
 version = "0.0.1"
+description = "PyDSL - Python interpreted for HTTP calls"
 requires-python = ">=3.12"
+readme = "README.md"
+license = { file = "LICENSE" }
 dependencies = [
   "aiosqlite==0.20.0",
   "fastapi==0.115.0",
   "httptools==0.6.1",
   "orjson==3.10.7",
   "sqlmodel==0.0.22",
+  "uuid7==0.1.0",
   "uvicorn==0.31.0",
-  "uvloop==0.20.0 ; sys_platform != 'win32'"
+  "uvloop==0.20.0 ; sys_platform != 'win32'",
 ]
 
-[project.optional-dependencies]
-test = [
-  "fastapi-cli==0.0.5",
-  "ruff==0.6.8"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+
+  "License :: OSI Approved :: MIT License",
+
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
+
+[project.urls]
+Repository = "https://github.com/GustasG/PyDSL"
 
 [tool.ruff]
 line-length = 120
@@ -33,3 +43,8 @@ select = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.uv]
+dev-dependencies = [
+  "fastapi-cli>=0.0.5",
+]

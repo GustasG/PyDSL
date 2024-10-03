@@ -10,7 +10,7 @@ from app.environment.router import router as environment_router
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    engine = create_async_engine("sqlite+aiosqlite:///database.db", echo=True, future=True)
+    engine = create_async_engine("sqlite+aiosqlite:///database.db", echo=True, echo_pool=True)
 
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
@@ -22,6 +22,7 @@ async def lifespan(_app: FastAPI):
 
 app = FastAPI(
     title="PyDSL",
+    version="0.0.1",
     default_response_class=ORJSONResponse,
     lifespan=lifespan,
 )
