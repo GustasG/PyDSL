@@ -1,19 +1,17 @@
 [project]
 name = "PyDSL"
 version = "0.0.1"
-description = "PyDSL - Python interpreted for HTTP calls"
+description = "PyDSL - Interpreted python using HTTP calls"
 requires-python = ">=3.12"
 readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
   "aiosqlite==0.20.0",
   "fastapi==0.115.0",
-  "httptools==0.6.1",
+  "granian>=1.6.0",
   "orjson==3.10.7",
   "sqlmodel==0.0.22",
   "uuid7==0.1.0",
-  "uvicorn==0.31.0",
-  "uvloop==0.20.0 ; sys_platform != 'win32'",
 ]
 
 classifiers = [
@@ -47,4 +45,7 @@ indent-style = "space"
 [tool.uv]
 dev-dependencies = [
   "fastapi-cli>=0.0.5",
+  "httpx>=0.27.2",
+  "pyhamcrest>=2.1.0",
+  "pytest>=8.3.3",
 ]

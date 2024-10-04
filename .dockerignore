@@ -24,6 +24,8 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/.devcontainer
+**/.ruff_cache/
+**/tests/
 LICENSE
 README.md
-*.db

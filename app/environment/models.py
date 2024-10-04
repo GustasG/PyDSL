@@ -10,6 +10,7 @@ class Environment(SQLModel, table=True):
     title: str | None = Field(default=None, max_length=32)
     description: str | None = Field(default=None, max_length=128)
     created_at: datetime.datetime = Field(default_factory=lambda: datetime.datetime.now(datetime.UTC))
+    updated_at: datetime.datetime = Field(default_factory=lambda: datetime.datetime.now(datetime.UTC))
 
     definitions: list["CodeDefinition"] = Relationship(back_populates="environment")
 

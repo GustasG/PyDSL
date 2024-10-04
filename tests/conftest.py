@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 
+import pytest
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio.engine import create_async_engine
 from sqlmodel import SQLModel
 
@@ -9,9 +11,7 @@ from app import create_app
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    engine = create_async_engine(
-        url="sqlite+aiosqlite:///database.db", echo=True, echo_pool=True, connect_args={"check_same_thread": False}
-    )
+    engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 
     async with engine.begin() as conn:
         await conn.run_sync(SQLModel.metadata.create_all)
@@ -21,4 +21,9 @@ async def lifespan(_app: FastAPI):
     await engine.dispose()
 
 
-app = create_app(lifespan=lifespan)
+@pytest.fixture
+def test_client():
+    app = create_app(lifespan=lifespan)
+
+    with TestClient(app) as client:
+        yield client
