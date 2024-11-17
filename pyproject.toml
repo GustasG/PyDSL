@@ -7,18 +7,16 @@ readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
   "aiosqlite==0.20.0",
-  "fastapi==0.115.0",
-  "granian>=1.6.0",
-  "orjson==3.10.7",
+  "fastapi==0.115.5",
+  "granian>=1.6.3",
+  "orjson==3.10.11",
   "sqlmodel==0.0.22",
   "uuid7==0.1.0",
 ]
 
 classifiers = [
   "Development Status :: 3 - Alpha",
-
   "License :: OSI Approved :: MIT License",
-
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
 ]
@@ -32,10 +30,25 @@ indent-width = 4
 
 [tool.ruff.lint]
 select = [
+  "A", # builtin shadowing
+  "B", # flake8 bugbear
+  "BLE", # aboid bare excepts
+  "C4", # flake8 comprehensions
+  "DTZ", # datetime errors
   "E", # pycodestyle
   "F", # Pyflakes
+  "FBT", # avoid boolean trap
+  "G", # logging format
   "I", # isort
+  "N", # conform to PEP8 naming rules
+  "PTH", # flake8 pathlib
+  "Q", # flake8 quotes
+  "S", # bandit
+  "SIM", # flake8 simplify
+  "TRY", # exceptions antipatterns
   "UP", # pyupgrade
+  "W", # pycodestyle warning
+  "YTT", # flake8 2020
 ]
 
 [tool.ruff.format]
@@ -45,6 +58,7 @@ indent-style = "space"
 [tool.uv]
 dev-dependencies = [
   "fastapi-cli>=0.0.5",
+  "freezegun>=1.5.1",
   "httpx>=0.27.2",
   "pyhamcrest>=2.1.0",
   "pytest>=8.3.3",

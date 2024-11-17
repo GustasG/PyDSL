@@ -1,3 +1,7 @@
-ENVIRONMENTS_PER_PAGE = 25
+"""
+Configuration constants for environment API response handling.
+"""
 
-DEFINITIONS_PER_PAGE = 25
+ENVIRONMENTS_PER_RESPONSE = 25
+
+DEFINITIONS_PER_RESPONSE = 25

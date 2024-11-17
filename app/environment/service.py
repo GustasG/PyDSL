@@ -1,13 +1,21 @@
+"""
+Service layer for managing environment operations.
+"""
+
+import asyncio
 import datetime
 from collections.abc import Sequence
+from concurrent.futures import Executor
+from typing import Any
 from uuid import UUID
 
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.environment.constants import DEFINITIONS_PER_PAGE, ENVIRONMENTS_PER_PAGE
+from app.environment.constants import DEFINITIONS_PER_RESPONSE, ENVIRONMENTS_PER_RESPONSE
+from app.environment.exceptions import ExecutionError
 from app.environment.models import CodeDefinition, Environment
-from app.environment.schemas import EnvironmentCreate, EnvironmentUpdate
+from app.environment.schemas import DefinitionCreate, EnvironmentCreate, EnvironmentUpdate, ExecuteEnvironment
 
 
 async def find_all_environments(session: AsyncSession, page: int) -> Sequence[Environment]:
@@ -29,8 +37,8 @@ async def find_all_environments(session: AsyncSession, page: int) -> Sequence[En
     """
     statement = (
         select(Environment)
-        .offset((page - 1) * ENVIRONMENTS_PER_PAGE)
-        .limit(ENVIRONMENTS_PER_PAGE)
+        .offset((page - 1) * ENVIRONMENTS_PER_RESPONSE)
+        .limit(ENVIRONMENTS_PER_RESPONSE)
         .order_by(Environment.id)
     )
 
@@ -81,8 +89,8 @@ async def find_all_code_definitions(session: AsyncSession, environment_id: UUID,
     statement = (
         select(CodeDefinition)
         .where(CodeDefinition.environment_id == environment_id)
-        .offset((page - 1) * DEFINITIONS_PER_PAGE)
-        .limit(DEFINITIONS_PER_PAGE)
+        .offset((page - 1) * DEFINITIONS_PER_RESPONSE)
+        .limit(DEFINITIONS_PER_RESPONSE)
         .order_by(CodeDefinition.id)
     )
 
@@ -129,7 +137,7 @@ async def create_new_environment(session: AsyncSession, creation_data: Environme
     Returns:
         Environment: The newly created Environment object.
     """
-    environment = Environment(title=creation_data.title, description=creation_data.description)
+    environment = Environment.model_validate(creation_data)
 
     session.add(environment)
     await session.commit()
@@ -153,14 +161,12 @@ async def update_existing_environment(
     Returns:
         Environment: The updated environment instance.
     """
-    if update_data.title is not None:
-        environment.title = update_data.title
-    if update_data.description is not None:
-        environment.description = update_data.description
-    environment.updated_at = datetime.datetime.now(datetime.UTC)
+    environment_data = update_data.model_dump(exclude_unset=True)
+    environment_data["updated_at"] = datetime.datetime.now(datetime.UTC)
 
-    session.add(environment)
+    environment.sqlmodel_update(environment_data)
     await session.commit()
+    await session.refresh(environment)
 
     return environment
 
@@ -179,3 +185,85 @@ async def delete_existing_environment(session: AsyncSession, environment: Enviro
     """
     await session.delete(environment)
     await session.commit()
+
+
+async def create_new_code_definition(
+    session: AsyncSession, environment_id: UUID, create_data: DefinitionCreate
+) -> CodeDefinition:
+    definition = CodeDefinition(environment_id=environment_id, code=create_data.code)
+
+    session.add(definition)
+    await session.commit()
+    await session.refresh(definition)
+
+    return definition
+
+
+async def create_code_definition(
+    session: AsyncSession, environment_id: UUID, create_data: DefinitionCreate
+) -> CodeDefinition:
+    """Create and persist a new code definition in the database.
+
+    Args:
+        session (AsyncSession): The database session for performing database operations
+        environment_id (UUID): The unique identifier of the environment
+        create_data (DefinitionCreate): The data object containing the code to be stored
+
+    Returns:
+        CodeDefinition: The newly created code definition object with populated database fields
+    """
+    definition = CodeDefinition(environment_id=environment_id, code=create_data.code)
+
+    session.add(definition)
+    await session.commit()
+    await session.refresh(definition)
+
+    return definition
+
+
+async def execute_environment(
+    session: AsyncSession, process_pool: Executor, environment_id: UUID, execute_data: ExecuteEnvironment
+) -> Any:
+    """Execute code definitions in a specific environment and return the result.
+
+    Args:
+        session (AsyncSession): Database session for querying code definitions
+        process_pool (Executor): Executor for running code in a separate process
+        environment_id (UUID): Unique identifier of the environment to execute
+        execute_data (ExecuteEnvironment): Object containing execution parameters
+
+    Returns:
+        Any: The result of executing the code definitions
+    """
+    statement = select(CodeDefinition).where(CodeDefinition.environment_id == environment_id)
+    data = await session.exec(statement)
+
+    code = "\n\n".join(definition.code for definition in data.all())
+    code += f"""
+        __INTERNAL__RETURN__ = {execute_data.callable}(*{execute_data.args}, **{execute_data.kwargs})
+    """.strip()
+
+    loop = asyncio.get_running_loop()
+
+    try:
+        result = await loop.run_in_executor(process_pool, _run_code, code)
+    except Exception as e:
+        raise ExecutionError(callable_=execute_data.callable) from e
+
+    return result
+
+
+def _run_code(code: str) -> Any:
+    """
+    Execute the provided code and return the result.
+
+    Args:
+        code (str): The code to execute.
+
+    Returns:
+        Any: The result of the executed code.
+    """
+    loc = {}
+    exec(code, {}, loc)  # noqa: S102, pylint: disable=W0122
+
+    return loc["__INTERNAL__RETURN__"]

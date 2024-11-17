@@ -29,3 +29,4 @@
 **/tests/
 LICENSE
 README.md
+.pytest_cache

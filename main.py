@@ -13,12 +13,15 @@ async def lifespan(_app: FastAPI):
         url="sqlite+aiosqlite:///database.db", echo=True, echo_pool=True, connect_args={"check_same_thread": False}
     )
 
-    async with engine.begin() as conn:
-        await conn.run_sync(SQLModel.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(SQLModel.metadata.create_all)
 
-    yield {"engine": engine}
-
-    await engine.dispose()
+        yield {
+            "engine": engine,
+        }
+    finally:
+        await engine.dispose()
 
 
 app = create_app(lifespan=lifespan)

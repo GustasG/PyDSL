@@ -1,10 +1,15 @@
+"""
+FastAPI dependency injection functions for environment dependency retrieval.
+"""
+
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Path
+from fastapi import Depends, Path
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.database import get_session
+from app.dependencies import get_session
+from app.environment.exceptions import DefinitionNotFoundError, EnvironmentNotFoundError
 from app.environment.models import CodeDefinition, Environment
 from app.environment.service import try_find_definition, try_find_environment
 
@@ -24,12 +29,12 @@ async def get_environment(
         Environment: The retrieved environment object.
 
     Raises:
-        HTTPException: If the environment is not found, raises a 404 HTTP exception.
+        EnvironmentNotFoundException: If the environment is not found.
     """
     environment = await try_find_environment(session=session, environment_id=environment_id)
 
     if environment is None:
-        raise HTTPException(status_code=404, detail=f'Environment "{environment_id}" not found')
+        raise EnvironmentNotFoundError(environment_id=environment_id)
 
     return environment
 
@@ -49,11 +54,11 @@ async def get_definition(
         CodeDefinition: The retrieved code definition object.
 
     Raises:
-        HTTPException: If the code definition is not found, raises a 404 HTTP exception.
+        DefinitionNotFoundException: If the code definition is not found.
     """
     definition = await try_find_definition(session=session, definition_id=definition_id)
 
     if definition is None:
-        raise HTTPException(status_code=404, detail=f'Definition "{definition_id}" not found')
+        raise DefinitionNotFoundError(definition_id=definition_id)
 
     return definition
