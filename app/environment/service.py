@@ -70,7 +70,7 @@ async def find_all_environments(session: AsyncSession, page: int) -> Sequence[En
         select(Environment)
         .offset((page - 1) * ENVIRONMENTS_PER_PAGE)
         .limit(ENVIRONMENTS_PER_PAGE)
-        .order_by(str(Environment.id))
+        .order_by(Environment.id)
     )
 
     result = await session.exec(statement)
@@ -185,7 +185,7 @@ async def find_all_code_definitions(session: AsyncSession, environment_id: UUID,
         .where(CodeDefinition.environment_id == environment_id)
         .offset((page - 1) * DEFINITIONS_PER_PAGE)
         .limit(DEFINITIONS_PER_PAGE)
-        .order_by(str(CodeDefinition.id))
+        .order_by(CodeDefinition.id)
     )
 
     result = await session.exec(statement)
