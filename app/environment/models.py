@@ -9,7 +9,7 @@ from sqlmodel import Field, Relationship, SQLModel
 from uuid_extensions import uuid7
 
 
-class Environment(SQLModel, table=True):
+class Environment(SQLModel, table=True):  # type: ignore[call-arg]
     """
     Represents an environment configuration in the database.
     """
@@ -23,7 +23,7 @@ class Environment(SQLModel, table=True):
     definitions: list["CodeDefinition"] = Relationship(back_populates="environment", cascade_delete=True)
 
 
-class CodeDefinition(SQLModel, table=True):
+class CodeDefinition(SQLModel, table=True):  # type: ignore[call-arg]
     """
     Represents a code definition associated with an environment.
     """
