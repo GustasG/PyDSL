@@ -6,8 +6,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, ORJSONResponse
 from starlette.types import Lifespan
 
-from app.environment.exceptions import DefinitionNotFoundError, EnvironmentNotFoundError, ExecutionError
-from app.environment.router import router as environment_router
+from app.environment import DefinitionNotFoundError, EnvironmentNotFoundError, ExecutionError, environment_router
 
 DESCRIPTION = """
 The Python Function Execution API allows users to submit, store, and execute Python functions via API calls.

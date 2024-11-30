@@ -61,6 +61,7 @@ ignore_missing_imports = true
 
 [tool.uv]
 dev-dependencies = [
+  "coverage>=7.6.8",
   "fastapi-cli>=0.0.5",
   "freezegun>=1.5.1",
   "httpx>=0.28.0",
