@@ -2,7 +2,6 @@
 Global dependency module for FastAPI application.
 """
 
-from concurrent.futures import Executor
 from typing import cast
 
 from fastapi.requests import HTTPConnection
@@ -30,7 +29,3 @@ async def get_session(connection: HTTPConnection):
 
     async with AsyncSession(engine, expire_on_commit=False) as session:
         yield session
-
-
-async def get_process_pool(connection: HTTPConnection) -> Executor:
-    return connection.state.process_pool

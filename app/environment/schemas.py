@@ -56,3 +56,11 @@ class DefinitionCreate(BaseModel):
     """
 
     code: str
+
+
+class DefinitionUpdate(BaseModel):
+    """
+    Schema for updating an existing code definition.
+    """
+
+    code: str

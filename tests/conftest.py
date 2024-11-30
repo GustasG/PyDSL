@@ -10,7 +10,7 @@ from app import create_app
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI):
+async def _lifespan(_app: FastAPI):
     engine = create_async_engine("sqlite+aiosqlite:///:memory:")
 
     async with engine.begin() as conn:
@@ -23,7 +23,7 @@ async def lifespan(_app: FastAPI):
 
 @pytest.fixture
 def test_client():
-    app = create_app(lifespan=lifespan)
+    app = create_app(lifespan=_lifespan)
 
     with TestClient(app) as client:
         yield client

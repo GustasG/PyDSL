@@ -1,3 +1,7 @@
+"""
+Main module for the FastAPI application.
+"""
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -8,10 +12,11 @@ from app import create_app
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI):
-    engine = create_async_engine(
-        url="sqlite+aiosqlite:///database.db", echo=True, echo_pool=True, connect_args={"check_same_thread": False}
-    )
+async def _lifespan(_app: FastAPI):
+    """
+    Context manager that creates and disposes the database
+    """
+    engine = create_async_engine(url="sqlite+aiosqlite:///database.db", connect_args={"check_same_thread": False})
 
     try:
         async with engine.begin() as conn:
@@ -24,4 +29,4 @@ async def lifespan(_app: FastAPI):
         await engine.dispose()
 
 
-app = create_app(lifespan=lifespan)
+app = create_app(lifespan=_lifespan)

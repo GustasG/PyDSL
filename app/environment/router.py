@@ -2,25 +2,26 @@
 FastAPI router for managing environment resources.
 """
 
-from concurrent.futures import Executor
+from collections.abc import Sequence
 from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.dependencies import get_process_pool, get_session
+from app.dependencies import get_session
 from app.environment import service
-from app.environment.dependencies import get_definition, get_environment
+from app.environment.dependencies import get_all_environment_definitions, get_definition, get_environment
 from app.environment.models import CodeDefinition, Environment
 from app.environment.schemas import (
     DefinitionCreate,
+    DefinitionUpdate,
     EnvironmentCreate,
     EnvironmentUpdate,
     ExecuteEnvironment,
     ExecutionResult,
 )
-from app.schemas import ErrorResponse
+from app.schemas import GenericErrorData
 
 router = APIRouter(prefix="/environment")
 
@@ -41,7 +42,7 @@ async def create_environment(
     response_model=Environment,
     status_code=status.HTTP_200_OK,
     tags=["environment"],
-    responses={status.HTTP_404_NOT_FOUND: {"description": "Environment not found", "model": ErrorResponse}},
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Environment not found", "model": GenericErrorData}},
 )
 async def read_environment(
     environment: Annotated[Environment, Depends(get_environment)],
@@ -64,7 +65,7 @@ async def read_all_environments(
     response_model=Environment,
     status_code=status.HTTP_200_OK,
     tags=["environment"],
-    responses={status.HTTP_404_NOT_FOUND: {"description": "Environment not found", "model": ErrorResponse}},
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Environment not found", "model": GenericErrorData}},
 )
 async def update_environment(
     update_data: EnvironmentUpdate,
@@ -82,7 +83,7 @@ async def update_environment(
     path="/{environment_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     tags=["environment"],
-    responses={status.HTTP_404_NOT_FOUND: {"description": "Environment not found", "model": ErrorResponse}},
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Environment not found", "model": GenericErrorData}},
 )
 async def delete_environment(
     session: Annotated[AsyncSession, Depends(get_session)],
@@ -98,15 +99,11 @@ async def delete_environment(
     dependencies=[Depends(get_environment)],
     tags=["environment"],
 )
-async def execute_environment(
-    environment_id: UUID,
+def execute_environment(
     execute_data: ExecuteEnvironment,
-    session: Annotated[AsyncSession, Depends(get_session)],
-    process_pool: Annotated[Executor, Depends(get_process_pool)],
+    definitions: Annotated[Sequence[CodeDefinition], Depends(get_all_environment_definitions)],
 ):
-    result = await service.execute_environment(
-        session=session, process_pool=process_pool, environment_id=environment_id, execute_data=execute_data
-    )
+    result = service.execute_environment(definitions=definitions, execute_data=execute_data)
 
     return ExecutionResult(result=result)
 
@@ -115,6 +112,7 @@ async def execute_environment(
     path="/{environment_id}/definition",
     response_model=CodeDefinition,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(get_environment)],
     tags=["definition"],
 )
 async def create_definition(
@@ -135,7 +133,7 @@ async def create_definition(
     status_code=status.HTTP_200_OK,
     dependencies=[Depends(get_environment)],
     tags=["definition"],
-    responses={status.HTTP_404_NOT_FOUND: {"description": "Environment not found", "model": ErrorResponse}},
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Environment not found", "model": GenericErrorData}},
 )
 async def read_all_definitions(
     environment_id: UUID,
@@ -152,9 +150,41 @@ async def read_all_definitions(
     response_model=CodeDefinition,
     status_code=status.HTTP_200_OK,
     tags=["definition"],
-    responses={status.HTTP_404_NOT_FOUND: {"description": "Definition not found", "model": ErrorResponse}},
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Definition not found", "model": GenericErrorData}},
 )
 async def read_definition(
     definition: Annotated[CodeDefinition, Depends(get_definition)],
 ):
     return definition
+
+
+@router.patch(
+    path="/{environment_id}/definition/{definition_id}",
+    response_model=CodeDefinition,
+    status_code=status.HTTP_200_OK,
+    tags=["definition"],
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Definition not found", "model": GenericErrorData}},
+)
+async def update_definition(
+    update_data: DefinitionUpdate,
+    session: Annotated[AsyncSession, Depends(get_session)],
+    definition: Annotated[CodeDefinition, Depends(get_definition)],
+):
+    updated_definition = await service.update_existing_code_definition(
+        session=session, definition=definition, update_data=update_data
+    )
+
+    return updated_definition
+
+
+@router.delete(
+    path="/{environment_id}/definition/{definition_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    tags=["definition"],
+    responses={status.HTTP_404_NOT_FOUND: {"description": "Definition not found", "model": GenericErrorData}},
+)
+async def delete_definition(
+    session: Annotated[AsyncSession, Depends(get_session)],
+    definition: Annotated[CodeDefinition, Depends(get_definition)],
+):
+    await service.delete_existing_code_definition(session=session, definition=definition)

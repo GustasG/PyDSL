@@ -16,10 +16,16 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync --all-extras --dev
+        run: uv sync --all-extras --dev --quiet
 
       - name: Lint
         run: uvx ruff check --output-format=github .
 
+      - name: Type check
+        run: uvx mypy .
+
       - name: Test
         run: uv run pytest tests
+
+      - name: Cache mypy
+        uses: AustinScola/mypy-cache-github-action@v1

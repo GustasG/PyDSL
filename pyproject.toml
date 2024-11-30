@@ -8,14 +8,15 @@ license = { file = "LICENSE" }
 dependencies = [
   "aiosqlite==0.20.0",
   "fastapi==0.115.5",
-  "granian>=1.6.3",
-  "orjson==3.10.11",
+  "granian>=1.6.4",
+  "orjson==3.10.12",
   "sqlmodel==0.0.22",
-  "uuid7==0.1.0",
+  "uuid7==0.1.0"
 ]
 
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -30,36 +31,40 @@ indent-width = 4
 
 [tool.ruff.lint]
 select = [
-  "A", # builtin shadowing
-  "B", # flake8 bugbear
-  "BLE", # aboid bare excepts
-  "C4", # flake8 comprehensions
-  "DTZ", # datetime errors
-  "E", # pycodestyle
-  "F", # Pyflakes
-  "FBT", # avoid boolean trap
-  "G", # logging format
-  "I", # isort
-  "N", # conform to PEP8 naming rules
-  "PTH", # flake8 pathlib
-  "Q", # flake8 quotes
-  "S", # bandit
-  "SIM", # flake8 simplify
-  "TRY", # exceptions antipatterns
-  "UP", # pyupgrade
-  "W", # pycodestyle warning
-  "YTT", # flake8 2020
+  "A",    # builtin shadowing
+  "B",    # flake8 bugbear
+  "BLE",  # aboid bare excepts
+  "C4",   # flake8 comprehensions
+  "DTZ",  # datetime errors
+  "E",    # pycodestyle
+  "F",    # Pyflakes
+  "FBT",  # avoid boolean trap
+  "G",    # logging format
+  "I",    # isort
+  "N",    # conform to PEP8 naming rules
+  "PTH",  # flake8 pathlib
+  "Q",    # flake8 quotes
+  "S",    # bandit
+  "SIM",  # flake8 simplify
+  "TRY",  # exceptions antipatterns
+  "UP",   # pyupgrade
+  "W",    # pycodestyle warning
+  "YTT",  # flake8 2020
 ]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 
+[tool.mypy]
+ignore_missing_imports = true
+
 [tool.uv]
 dev-dependencies = [
   "fastapi-cli>=0.0.5",
   "freezegun>=1.5.1",
-  "httpx>=0.27.2",
+  "httpx>=0.28.0",
+  "mypy>=1.13.0",
   "pyhamcrest>=2.1.0",
   "pytest>=8.3.3",
 ]

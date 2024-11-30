@@ -20,7 +20,7 @@ class Environment(SQLModel, table=True):
     created_at: datetime.datetime = Field(default_factory=lambda: datetime.datetime.now(datetime.UTC))
     updated_at: datetime.datetime = Field(default_factory=lambda: datetime.datetime.now(datetime.UTC))
 
-    definitions: list["CodeDefinition"] = Relationship(back_populates="environment")
+    definitions: list["CodeDefinition"] = Relationship(back_populates="environment", cascade_delete=True)
 
 
 class CodeDefinition(SQLModel, table=True):

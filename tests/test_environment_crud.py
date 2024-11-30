@@ -51,7 +51,7 @@ def test_invalid_environment_creation_with_too_long_title(test_client: TestClien
         },
     )
 
-    assert_that(response.status_code, 422)
+    assert_that(response.status_code, equal_to(422))
 
 
 def test_invalid_environment_creation_with_too_long_description(test_client: TestClient):
@@ -63,15 +63,16 @@ def test_invalid_environment_creation_with_too_long_description(test_client: Tes
         },
     )
 
-    assert_that(response.status_code, 422)
+    assert_that(response.status_code, equal_to(422))
 
 
 @freeze_time("2000-01-01")
 def test_valid_environment_retrieval(test_client: TestClient):
     response = test_client.post("/environment", json={"title": "foo", "description": "bar"})
+    response.raise_for_status()
+    environment = response.json()
 
-    environment_id = response.json()["id"]
-    response = test_client.get(f"/environment/{environment_id}")
+    response = test_client.get(f"/environment/{environment['id']}")
 
     assert_that(response.status_code, equal_to(200))
     assert_that(
@@ -101,11 +102,11 @@ def test_environment_retrieval_with_invalid_id(test_client: TestClient):
 def test_environment_update_with_empty_payload(test_client: TestClient):
     with freeze_time("2000-01-01"):
         response = test_client.post("/environment", json={"title": "In test", "description": "Running test"})
-
-    environment_id = response.json()["id"]
+        response.raise_for_status()
+        environment = response.json()
 
     with freeze_time("2020-01-01"):
-        response = test_client.patch(f"/environment/{environment_id}", json={})
+        response = test_client.patch(f"/environment/{environment['id']}", json={})
 
     assert_that(response.status_code, equal_to(200))
     assert_that(
@@ -125,11 +126,11 @@ def test_environment_update_with_empty_payload(test_client: TestClient):
 def test_environment_update_with_only_title(test_client: TestClient):
     with freeze_time("2000-01-01"):
         response = test_client.post("/environment", json={"title": "Python", "description": "Programming language"})
-
-    environment_id = response.json()["id"]
+        response.raise_for_status()
+        environment = response.json()
 
     with freeze_time("2020-01-01"):
-        response = test_client.patch(f"/environment/{environment_id}", json={"title": "C++"})
+        response = test_client.patch(f"/environment/{environment['id']}", json={"title": "C++"})
 
     assert_that(response.status_code, equal_to(200))
     assert_that(
@@ -149,11 +150,11 @@ def test_environment_update_with_only_title(test_client: TestClient):
 def test_environment_update_with_only_description(test_client: TestClient):
     with freeze_time("2000-01-01"):
         response = test_client.post("/environment", json={"title": "Python", "description": "Programming language"})
-
-    environment_id = response.json()["id"]
+        response.raise_for_status()
+        environment = response.json()
 
     with freeze_time("2020-01-01"):
-        response = test_client.patch(f"/environment/{environment_id}", json={"description": "Scripting language"})
+        response = test_client.patch(f"/environment/{environment['id']}", json={"description": "Scripting language"})
 
     assert_that(response.status_code, equal_to(200))
     assert_that(
@@ -173,12 +174,12 @@ def test_environment_update_with_only_description(test_client: TestClient):
 def test_environment_update_with_both_title_and_description(test_client: TestClient):
     with freeze_time("2000-01-01"):
         response = test_client.post("/environment", json={"title": "C++", "description": "Scripting language"})
-
-    environment_id = response.json()["id"]
+        response.raise_for_status()
+        environment = response.json()
 
     with freeze_time("2020-01-01"):
         response = test_client.patch(
-            f"/environment/{environment_id}", json={"title": "C++", "description": "Programming language"}
+            f"/environment/{environment['id']}", json={"title": "C++", "description": "Programming language"}
         )
 
     assert_that(response.status_code, equal_to(200))
@@ -218,8 +219,9 @@ def test_environment_delete_with_invalid_id(test_client: TestClient):
 
 def test_environment_delete_with_valid_id(test_client: TestClient):
     response = test_client.post("/environment", json={"title": "Delete test"})
+    response.raise_for_status()
+    environment = response.json()
 
-    environment_id = response.json()["id"]
-    response = test_client.delete(f"/environment/{environment_id}")
+    response = test_client.delete(f"/environment/{environment['id']}")
 
     assert_that(response.status_code, equal_to(204))

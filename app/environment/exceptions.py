@@ -2,13 +2,15 @@
 Custom exceptions for environment errors.
 """
 
+from uuid import UUID
+
 
 class EnvironmentNotFoundError(Exception):
     """
     Exception raised when an environment with specified ID cannot be found.
     """
 
-    def __init__(self, environment_id: str):
+    def __init__(self, environment_id: UUID):
         self.id = environment_id
 
 
@@ -17,7 +19,7 @@ class DefinitionNotFoundError(Exception):
     Exception raised when a definition with specified ID cannot be found.
     """
 
-    def __init__(self, definition_id: str):
+    def __init__(self, definition_id: UUID):
         self.id = definition_id
 
 

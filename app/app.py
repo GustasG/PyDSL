@@ -2,10 +2,6 @@
 FastAPI Application Module for Python Function Execution API
 """
 
-from collections.abc import Sequence
-from concurrent.futures import ProcessPoolExecutor
-from contextlib import AsyncExitStack, asynccontextmanager
-
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, ORJSONResponse
 from starlette.types import Lifespan
@@ -28,32 +24,16 @@ for execution.
 """
 
 
-@asynccontextmanager
-async def default_lifespan(_app: FastAPI):
-    with ProcessPoolExecutor() as executor:
-        yield {"process_pool": executor}
-
-
-def merged_lifespan(lifespans: Sequence[Lifespan[FastAPI]]):
-    @asynccontextmanager
-    async def inner(app: FastAPI):
-        async with AsyncExitStack() as stack:
-            state = {}
-
-            for lifespan in lifespans:
-                if value := await stack.enter_async_context(lifespan(app)):
-                    state.update(value)
-
-            yield state
-
-    return inner
-
-
 def create_app(lifespan: Lifespan[FastAPI] | None = None) -> FastAPI:
-    lifespans = [default_lifespan]
-    if lifespan:
-        lifespans.append(lifespan)
+    """
+    Create a FastAPI application instance with the provided lifespan.
 
+    Args:
+        lifespan (Lifespan[FastAPI] | None): Lifespan instance to manage the application lifecycle.
+
+    Returns:
+        FastAPI: FastAPI application instance.
+    """
     app = FastAPI(
         title="PyDSL",
         version="0.0.1",
@@ -72,7 +52,7 @@ def create_app(lifespan: Lifespan[FastAPI] | None = None) -> FastAPI:
             "url": "https://opensource.org/licenses/MIT",
         },
         default_response_class=ORJSONResponse,
-        lifespan=merged_lifespan(lifespans),
+        lifespan=lifespan,
     )
 
     @app.exception_handler(EnvironmentNotFoundError)
@@ -97,7 +77,7 @@ def create_app(lifespan: Lifespan[FastAPI] | None = None) -> FastAPI:
                 "detail": f'Error occurred while executing "{exc.callable}"',
                 "message": str(exc.__cause__),
                 "type": type(exc.__cause__).__name__,
-            }
+            },
         )
 
     app.include_router(environment_router)
